@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="ButtonsContainer">
+        <attr name="topButtonText"
+            format="string" />
+        <attr name="bottomButtonText"
+            format="string"
+            />
+        <attr name="topButtonBackgroundColor"
+            format="color"
+            />
+        <attr name="bottomButtonBackgroundColor"
+            format="color" />
+    </declare-styleable>
+
+    <attr name="buttonContainerStyle"
+        format="reference"/>
+
+    <style name="DayButtonsContainerStyle">
+        <item name="topButtonBackgroundColor">#3F51B5</item>
+        <item name="bottomButtonBackgroundColor">#FFC107</item>
+    </style>
+
+    <style name="DefaultButtonsContainerStyle">
+        <item name="topButtonBackgroundColor">#9C27B0</item>
+        <item name="bottomButtonBackgroundColor">#9C27B0</item>
+    </style>
+</resources>

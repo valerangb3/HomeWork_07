@@ -13,4 +13,13 @@
         <item tools:targetApi="l" name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="Base.Theme.ReuseExample"
+        parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Добавили определение атрибута стиля для светлой темы -->
+        <item name="buttonContainerStyle">@style/DayButtonsContainerStyle</item>
+    </style>
+
+    <style name="Theme.ReuseExample"
+        parent="Base.Theme.ReuseExample" />
 </resources>

@@ -50,6 +50,7 @@ dependencies {
     implementation libs.bundles.network
     implementation libs.androidx.datastore
     implementation libs.androidx.datastore.preferences
+    implementation libs.androidx.activity
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.test.ext.junit
