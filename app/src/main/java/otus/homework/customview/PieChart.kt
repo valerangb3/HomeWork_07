@@ -1,11 +1,12 @@
 package otus.homework.customview
 
 import android.content.Context
+import android.graphics.Canvas
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
-
+import kotlin.run
 
 
 private val pieSectors = listOf(
@@ -102,4 +103,36 @@ class PieChart @JvmOverloads constructor(
     @StyleRes defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
+    private var totalAmount: Long = 0
+
+    private val categories = mutableMapOf<String, PieItemView>()
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (categories.isEmpty()) return
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (categories.isEmpty()) return
+        super.onDraw(canvas)
+    }
+
+    fun setSectors(sectors: List<PieSector>) {
+        if (sectors.isEmpty()) return
+        categories.clear()
+        sectors.forEach { totalAmount += it.amount }
+        sectors.forEach { category ->
+            val cat = categories[category.category]
+            cat?.let { cCat ->
+                cCat.amount += category.amount
+                cCat.percent = (cCat.amount / totalAmount.toFloat()) * 100f
+            } ?: run {
+                categories[category.category] = PieItemView(
+                    category = category.category,
+                    percent = (category.amount / totalAmount.toFloat()) * 100f,
+                    amount = category.amount.toLong()
+                )
+            }
+        }
+    }
 }
