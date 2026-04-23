@@ -2,10 +2,14 @@ package otus.homework.customview
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
+import kotlin.math.min
 import kotlin.run
 
 
@@ -105,11 +109,59 @@ class PieChart @JvmOverloads constructor(
 
     private var totalAmount: Long = 0
 
+    private var strokeWidthPx = 100f
+
+    private var centerX = 0f
+    private var centerY = 0f
+    private var radius = 0f
+
+    private val paint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        color = Color.BLUE
+        strokeWidth = strokeWidthPx
+    }
+
+    private val rectF = RectF()
+
+    private val minViewSize = resources.getDimensionPixelSize(
+        R.dimen.pieChartVewMinSize
+    )
+
     private val categories = mutableMapOf<String, PieItemView>()
+
+    init {
+        setSectors(pieSectors)
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (categories.isEmpty()) return
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val curWidth = MeasureSpec.getSize(widthMeasureSpec)
+        val curHeight = MeasureSpec.getSize(heightMeasureSpec)
+
+        val contentWidth = when (val wMode = MeasureSpec.getMode(widthMeasureSpec)) {
+            MeasureSpec.AT_MOST -> curWidth
+            MeasureSpec.EXACTLY -> curWidth
+            MeasureSpec.UNSPECIFIED -> minViewSize
+            else -> error("Неизвестный режим ширины ($wMode)")
+        }
+
+        val contentHeight = when (val hMode = MeasureSpec.getMode(heightMeasureSpec)) {
+            MeasureSpec.AT_MOST -> curHeight
+            MeasureSpec.EXACTLY -> curHeight
+            MeasureSpec.UNSPECIFIED -> minViewSize
+            else -> error("Неизвестный режим ширины ($hMode)")
+        }
+
+        val size = min(contentWidth, contentHeight)
+
+        setMeasuredDimension(size, size)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        centerX = measuredWidth / 2f
+        centerY = measuredHeight / 2f
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -125,11 +177,11 @@ class PieChart @JvmOverloads constructor(
             val cat = categories[category.category]
             cat?.let { cCat ->
                 cCat.amount += category.amount
-                cCat.percent = (cCat.amount / totalAmount.toFloat()) * 100f
+                cCat.percent = (cCat.amount.toFloat() / totalAmount.toFloat()) * 100f
             } ?: run {
                 categories[category.category] = PieItemView(
                     category = category.category,
-                    percent = (category.amount / totalAmount.toFloat()) * 100f,
+                    percent = (category.amount.toFloat() / totalAmount.toFloat()) * 100f,
                     amount = category.amount.toLong()
                 )
             }
