@@ -18,12 +18,22 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Контейнер с двумя кнопками -->
-    <otus.homework.customview.CircularProgressView
+    <!--<otus.homework.customview.CircularProgressView
         android:id="@+id/customProgressView"
         android:layout_width="wrap_content"
         android:layout_height="200dp"
         android:layout_margin="32dp"
         android:background="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />-->
+
+    <otus.homework.customview.PieChart
+        android:id="@+id/customPieChart"
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:layout_margin="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

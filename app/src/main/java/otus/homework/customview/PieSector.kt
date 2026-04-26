@@ -10,6 +10,6 @@ data class PieSector(
 
 internal data class PieItemView(
     val category: String,
-    var percent: Float,
-    var amount: Long
+    var attitude: Float,
+    var amount: Long,
 )
