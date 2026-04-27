@@ -12,8 +12,10 @@ import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
 import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.run
 
@@ -57,7 +59,7 @@ private val pieSectors = listOf(
     PieSector(
         id = 6,
         name = "Азбука Вкуса Экспресс",
-        amount = 1841,
+        amount = 1841322,
         category = "Доставка еды",
         time = 1623322371
     ),
@@ -111,28 +113,34 @@ class PieChart @JvmOverloads constructor(
     @AttrRes defStyleAttr: Int = 0,
     @StyleRes defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
-
     private val gap: Long = 2 //TODO - можно доделатиь, что прокинуть из параметра
     private val defaultStrokeWidthPx = 70f //TODO - можно доделатиь, что прокинуть из параметра
+    private var inset = 70f //TODO - можно доделатиь, что прокинуть из параметра (отступ)
+    private val minAngle = 15f //TODO - можно доделатиь, что прокинуть из параметра (нормализация угла)
     private var centerX = 0f
     private var centerY = 0f
     private var totalAmount: Long = 0
-    private var availableAngle = -1f
-    private val minAngle = 5f
     private val minGap = .5f
     private var commonRadius = 0f
-    private var maxStrokeWidth: Float = -1f
+    private var maxStrokeWidth = -1f
     private val paint = Paint().apply {
         isAntiAlias = true
         style = Paint.Style.STROKE
         color = Color.BLUE
         strokeWidth = defaultStrokeWidthPx
     }
+    private val paintText = Paint().apply {
+        textSize = 24f
+        style = Paint.Style.FILL
+    }
     private val slices = mutableMapOf<String, Slice>()
     private val minViewSize = resources.getDimensionPixelSize(
         R.dimen.pieChartVewMinSize
     )
     private val categories = mutableMapOf<String, PieItemView>()
+    private var downTouch = false
+    private var lastClickX = -1f
+    private var lastClickY = -1f
 
     init {
         setData(pieSectors)
@@ -175,40 +183,70 @@ class PieChart @JvmOverloads constructor(
         slices.forEach { (_, slice) ->
             paint.strokeWidth = slice.strokeWidth
             paint.color = slice.color
+
+            /*val middleAngle = slice.startAngle + slice.sweepAngle / 2
+            val x = centerX + commonRadius * cos(Math.toRadians(middleAngle.toDouble()))
+            val y = centerY + commonRadius * sin(Math.toRadians(middleAngle.toDouble()))*/
+
+            val middleAngle = slice.startAngle + slice.sweepAngle / 2
+
+            val textRadius = commonRadius + (paint.strokeWidth / 2) - 20f
+
+            val x = centerX + textRadius * cos(Math.toRadians(middleAngle.toDouble()))
+            val y = centerY + textRadius * sin(Math.toRadians(middleAngle.toDouble()))
+
+            paintText.textAlign = Paint.Align.CENTER
+
             canvas.drawArc(slice.rectF, slice.startAngle, slice.sweepAngle, false, paint)
+            //paintText.te
+
+            canvas.drawText(slice.text, x.toFloat(), y.toFloat(), paintText)
         }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            val x = event.x - centerX
-            val y = event.y - centerY
-            val distance = sqrt(x * x + y * y)
-            val outerRadius = commonRadius + maxStrokeWidth / 2
-            val innerRadius = commonRadius - maxStrokeWidth / 2
-
-            if (distance in innerRadius..outerRadius) {
-                //Log.d("PieChart", "maxStrokeWidth = $maxStrokeWidth")
-                //Log.d("PieChart", "innerRadius radius = $innerRadius")
-                //Log.d("PieChart", "outerRadius radius = $outerRadius")
-                //Log.d("PieChart", "distance = $distance")
-                var touchAngle = Math.toDegrees(atan2(y, x).toDouble()).toFloat()
-                if (touchAngle < 0) touchAngle += 360f
-                touchAngle = (touchAngle + 90f) % 360f
-                findSector(touchAngle)
-                Log.d("PieChart", "touchAngle = $touchAngle")
+        super.onTouchEvent(event)
+        return when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                downTouch = true
+                true
             }
+            MotionEvent.ACTION_UP -> {
+                if (downTouch) {
+                    downTouch = false
+                    lastClickX = event.x - centerX
+                    lastClickY = event.y - centerY
+                    performClick()
+                } else false
+            }
+            else -> false
         }
-        return super.onTouchEvent(event)
     }
 
-    private fun findSector(touchAngle: Float): PieSector? {
+    override fun performClick(): Boolean {
+        super.performClick()
+        val distance = sqrt(lastClickX * lastClickX + lastClickY * lastClickY)
+        val outerRadius = commonRadius - inset + maxStrokeWidth / 2
+        val innerRadius = commonRadius - inset - maxStrokeWidth / 2
+
+        if (distance in innerRadius..outerRadius) {
+            var touchAngle = Math.toDegrees(atan2(lastClickY, lastClickX).toDouble()).toFloat()
+            if (touchAngle < 0) touchAngle += FULL_ROTATION_DEG
+            touchAngle = (touchAngle + 90f) % FULL_ROTATION_DEG
+            findSector(touchAngle)
+            Log.d("PieChart", "touchAngle = $touchAngle")
+        }
+        return true
+    }
+
+    private fun findSector(touchAngle: Float): PieItemView? {
         if (slices.isEmpty()) return null
         slices.forEach { (category, slice) ->
             val startAngle = slice.normalizedStartAngle
             val endAngle = slice.normalizedEndAngle
             if (touchAngle in startAngle..endAngle) {
                 Log.d("PieChart", "Ты нажмал на `${categories[category]?.category ?: "wtf?!"}`")
+                return categories[category]
             }
         }
         return null
@@ -232,7 +270,6 @@ class PieChart @JvmOverloads constructor(
                 )
             }
         }
-        availableAngle = FULL_ROTATION_DEG - (categories.size * gap)
     }
 
     private fun setSlices() {
@@ -272,6 +309,8 @@ class PieChart @JvmOverloads constructor(
             val endAngle = startAngle + sweepAngle
             val normalizedEndAngle = normalizedStartAngle + sweepAngle
             slices[category] = Slice(
+
+                text = "%.2f".format(view.attitude * 100),
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 strokeWidth = strokeWidth,
@@ -284,7 +323,7 @@ class PieChart @JvmOverloads constructor(
                     centerX + radius,
                     centerY + radius
                 ).apply {
-                   // inset(70f, 70f)
+                    inset(inset, inset)
                 },
             )
             normalizedStartAngle = normalizedEndAngle + minGap
@@ -293,6 +332,7 @@ class PieChart @JvmOverloads constructor(
     }
 
     private class Slice(
+        val text: String,
         val startAngle: Float,
         val normalizedStartAngle: Float,
         val normalizedEndAngle: Float,
