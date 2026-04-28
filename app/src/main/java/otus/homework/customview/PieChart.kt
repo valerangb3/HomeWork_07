@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -123,15 +125,22 @@ class PieChart @JvmOverloads constructor(
     private val minGap = .5f
     private var commonRadius = 0f
     private var maxStrokeWidth = -1f
-    private val paint = Paint().apply {
+    private val paintArc = Paint().apply {
         isAntiAlias = true
         style = Paint.Style.STROKE
         color = Color.BLUE
         strokeWidth = defaultStrokeWidthPx
     }
     private val paintText = Paint().apply {
-        textSize = 24f
+        textSize = 20.0f
         style = Paint.Style.FILL
+        color = Color.GRAY
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+    }
+    private val paintBorderText = Paint().apply {
+        textSize = 20.0f
+        style = Paint.Style.STROKE
+        color = Color.GRAY
     }
     private val slices = mutableMapOf<String, Slice>()
     private val minViewSize = resources.getDimensionPixelSize(
@@ -181,26 +190,22 @@ class PieChart @JvmOverloads constructor(
         if (slices.isEmpty()) return
         //super.onDraw(canvas)
         slices.forEach { (_, slice) ->
-            paint.strokeWidth = slice.strokeWidth
-            paint.color = slice.color
-
             /*val middleAngle = slice.startAngle + slice.sweepAngle / 2
             val x = centerX + commonRadius * cos(Math.toRadians(middleAngle.toDouble()))
             val y = centerY + commonRadius * sin(Math.toRadians(middleAngle.toDouble()))*/
-
-            val middleAngle = slice.startAngle + slice.sweepAngle / 2
-
-            val textRadius = commonRadius + (paint.strokeWidth / 2) - 20f
-
-            val x = centerX + textRadius * cos(Math.toRadians(middleAngle.toDouble()))
-            val y = centerY + textRadius * sin(Math.toRadians(middleAngle.toDouble()))
-
+            paintArc.strokeWidth = slice.strokeWidth
+            paintArc.color = slice.color
             paintText.textAlign = Paint.Align.CENTER
 
-            canvas.drawArc(slice.rectF, slice.startAngle, slice.sweepAngle, false, paint)
-            //paintText.te
-
-            canvas.drawText(slice.text, x.toFloat(), y.toFloat(), paintText)
+            canvas.drawArc(slice.circleRectF, slice.startAngle, slice.sweepAngle, false, paintArc)
+            canvas.drawText(slice.text, slice.textX, slice.textY, paintText)
+            canvas.drawRect(
+                slice.textX - 10f - slice.textWidth / 2f,
+                slice.textY - slice.textHeight - 10f,
+                slice.textX  + 10f + slice.textWidth / 2f,
+                slice.textY + slice.textHeight,
+                paintBorderText
+            )
         }
     }
 
@@ -296,7 +301,7 @@ class PieChart @JvmOverloads constructor(
             val centerY = measuredHeight / 2
             val sweepAngle = (adjustedAngles[category]!! / adjustedSum) * FULL_ROTATION_DEG - minGap
             val strokeWidth = defaultStrokeWidthPx + (defaultStrokeWidthPx * view.attitude)
-            val radius = commonRadius - (maxStrokeWidth - strokeWidth) / 2
+            val radius = (commonRadius - (maxStrokeWidth - strokeWidth) / 2) - 20f //todo padding (20f)
 
             val hue = (INITIAL_HUE + index * GOLDEN_RATIO_CONJUGATE) % 1.0f
             val color = Color.HSVToColor(
@@ -308,16 +313,26 @@ class PieChart @JvmOverloads constructor(
             )
             val endAngle = startAngle + sweepAngle
             val normalizedEndAngle = normalizedStartAngle + sweepAngle
-            slices[category] = Slice(
 
-                text = "%.2f".format(view.attitude * 100),
+            val middleAngle = startAngle + sweepAngle / 2
+            val textRadius = commonRadius + (paintArc.strokeWidth / 2) - 20f
+            val x = centerX + textRadius * cos(Math.toRadians(middleAngle.toDouble())).toFloat()
+            val y = centerY + textRadius * sin(Math.toRadians(middleAngle.toDouble())).toFloat()
+
+            val sliceText = "%.2f%%".format(view.attitude * 100)
+
+            val textBounds = Rect()
+            paintText.getTextBounds(sliceText, 0, sliceText.length, textBounds)
+
+            slices[category] = Slice(
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 strokeWidth = strokeWidth,
                 normalizedStartAngle = normalizedStartAngle,
                 normalizedEndAngle = normalizedEndAngle,
                 color = color,
-                rectF = RectF(
+
+                circleRectF = RectF(
                     centerX - radius,
                     centerY - radius,
                     centerX + radius,
@@ -325,6 +340,12 @@ class PieChart @JvmOverloads constructor(
                 ).apply {
                     inset(inset, inset)
                 },
+
+                text = sliceText,
+                textX = x,
+                textY = y,
+                textWidth = textBounds.width(),
+                textHeight = textBounds.height()
             )
             normalizedStartAngle = normalizedEndAngle + minGap
             startAngle = endAngle + minGap
@@ -333,12 +354,17 @@ class PieChart @JvmOverloads constructor(
 
     private class Slice(
         val text: String,
+        val textX: Float,
+        val textY: Float,
+        val textWidth: Int,
+        val textHeight: Int,
+
         val startAngle: Float,
         val normalizedStartAngle: Float,
         val normalizedEndAngle: Float,
         val sweepAngle: Float,
         val strokeWidth: Float,
-        val rectF: RectF,
+        val circleRectF: RectF,
         val color: Int
     )
 
