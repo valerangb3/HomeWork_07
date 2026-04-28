@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -152,11 +153,12 @@ class PieChart @JvmOverloads constructor(
     private var lastClickY = -1f
 
     init {
-        setData(pieSectors)
+        // setData(pieSectors)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (categories.isEmpty()) return
+        Log.d("ViewLifeCycle", "onMeasure")
+        //if (categories.isEmpty()) return
         val curWidth = MeasureSpec.getSize(widthMeasureSpec)
         val curHeight = MeasureSpec.getSize(heightMeasureSpec)
 
@@ -180,13 +182,16 @@ class PieChart @JvmOverloads constructor(
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        Log.d("ViewLifeCycle", "onSizeChanged")
+        if (categories.isEmpty()) return
         super.onSizeChanged(w, h, oldw, oldh)
         centerX = measuredWidth / 2f
         centerY = measuredHeight / 2f
-        setSlices()
+        if (slices.isEmpty()) setSlices()
     }
 
     override fun onDraw(canvas: Canvas) {
+        Log.d("ViewLifeCycle", "onDraw")
         if (slices.isEmpty()) return
         //super.onDraw(canvas)
         slices.forEach { (_, slice) ->
@@ -257,6 +262,16 @@ class PieChart @JvmOverloads constructor(
         return null
     }
 
+    override fun onSaveInstanceState(): Parcelable? {
+        Log.d("ViewLifeCycle", "onSaveInstanceState")
+        return super.onSaveInstanceState()
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        Log.d("ViewLifeCycle", "onRestoreInstanceState")
+        super.onRestoreInstanceState(state)
+    }
+
     fun setData(sectors: List<PieSector>) {
         if (sectors.isEmpty()) return
         categories.clear()
@@ -275,6 +290,8 @@ class PieChart @JvmOverloads constructor(
                 )
             }
         }
+        setSlices()
+        invalidate()
     }
 
     private fun setSlices() {
