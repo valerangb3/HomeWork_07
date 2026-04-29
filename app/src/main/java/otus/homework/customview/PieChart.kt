@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Log
@@ -14,6 +15,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.AttrRes
 import androidx.annotation.StyleRes
+import java.util.Collections.emptyList
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.max
@@ -143,11 +145,12 @@ class PieChart @JvmOverloads constructor(
         style = Paint.Style.STROKE
         color = Color.GRAY
     }
-    private val slices = mutableMapOf<String, Slice>()
     private val minViewSize = resources.getDimensionPixelSize(
         R.dimen.pieChartVewMinSize
     )
     private val categories = mutableMapOf<String, PieItemView>()
+    private val slices = mutableMapOf<String, Slice>()
+    private var sectors: MutableList<PieSector>? = null
     private var downTouch = false
     private var lastClickX = -1f
     private var lastClickY = -1f
@@ -262,22 +265,14 @@ class PieChart @JvmOverloads constructor(
         return null
     }
 
-    override fun onSaveInstanceState(): Parcelable? {
-        Log.d("ViewLifeCycle", "onSaveInstanceState")
-        return super.onSaveInstanceState()
-    }
-
-    override fun onRestoreInstanceState(state: Parcelable?) {
-        Log.d("ViewLifeCycle", "onRestoreInstanceState")
-        super.onRestoreInstanceState(state)
-    }
-
-    fun setData(sectors: List<PieSector>) {
-        if (sectors.isEmpty()) return
+    fun setData(items: List<PieSector>) {
+        if (items.isEmpty()) return
         categories.clear()
+        sectors?.clear()
+        sectors?.addAll(items)
         slices.clear()
-        sectors.forEach { totalAmount += it.amount }
-        sectors.forEach { category ->
+        items.forEach { totalAmount += it.amount }
+        items.forEach { category ->
             val cat = categories[category.category]
             cat?.let { cCat ->
                 cCat.amount += category.amount
@@ -369,6 +364,23 @@ class PieChart @JvmOverloads constructor(
         }
     }
 
+    override fun onSaveInstanceState(): Parcelable {
+        //Log.d("ViewLifeCycle", "onSaveInstanceState")
+        val superState = super.onSaveInstanceState()
+        val savedState = SavedState(superState)
+        savedState.pieChartData = sectors
+        return savedState
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        Log.d("ViewLifeCycle", "onRestoreInstanceState")
+        if (state is SavedState) {
+            super.onRestoreInstanceState(state.superState)
+            //sectors = state.pieChartData?.toMutableList() ?: emptyList()
+            setData(state.pieChartData?.toMutableList() ?: emptyList())
+        } else super.onRestoreInstanceState(state)
+    }
+
     private class Slice(
         val text: String,
         val textX: Float,
@@ -384,6 +396,28 @@ class PieChart @JvmOverloads constructor(
         val circleRectF: RectF,
         val color: Int
     )
+
+    class SavedState : BaseSavedState {
+        var pieChartData: List<PieSector>? = null
+
+        constructor(superState: Parcelable?): super(superState)
+        constructor(parcel: Parcel): super(parcel) {
+            pieChartData = parcel.createTypedArrayList(PieSector.CREATOR)
+        }
+
+        companion object {
+            @JvmField
+            val CREATOR = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(parcel: Parcel): SavedState {
+                    return SavedState(parcel)
+                }
+
+                override fun newArray(size: Int): Array<out SavedState?> {
+                    return arrayOfNulls(size)
+                }
+            }
+        }
+    }
 
     private companion object {
         const val FULL_ROTATION_DEG = 360f
