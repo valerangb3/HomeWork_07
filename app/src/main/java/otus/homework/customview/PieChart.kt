@@ -180,7 +180,7 @@ class PieChart @JvmOverloads constructor(
         }
 
         val size = min(contentWidth, contentHeight)
-
+        Log.d("ViewLifeCycle", "onMeasure: size = $size")
         setMeasuredDimension(size, size)
     }
 
@@ -190,7 +190,8 @@ class PieChart @JvmOverloads constructor(
         super.onSizeChanged(w, h, oldw, oldh)
         centerX = measuredWidth / 2f
         centerY = measuredHeight / 2f
-        if (slices.isEmpty()) setSlices()
+        setSlices()
+        //if (slices.isEmpty()) setSlices()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -265,26 +266,36 @@ class PieChart @JvmOverloads constructor(
         return null
     }
 
-    fun setData(items: List<PieSector>) {
-        if (items.isEmpty()) return
+    fun setCategories() {
         categories.clear()
-        sectors?.clear()
-        sectors?.addAll(items)
-        slices.clear()
-        items.forEach { totalAmount += it.amount }
-        items.forEach { category ->
-            val cat = categories[category.category]
-            cat?.let { cCat ->
-                cCat.amount += category.amount
-                cCat.attitude = cCat.amount.toFloat() / totalAmount.toFloat() // attitude - отношение
-            } ?: run {
-                categories[category.category] = PieItemView(
-                    category = category.category,
-                    attitude = category.amount.toFloat() / totalAmount.toFloat(), // attitude - отношение
-                    amount = category.amount.toLong()
-                )
+        sectors?.let { sectors ->
+            sectors.forEach { totalAmount += it.amount }
+            sectors.forEach { category ->
+                val cat = categories[category.category]
+                cat?.let { cCat ->
+                    cCat.amount += category.amount
+                    cCat.attitude = cCat.amount.toFloat() / totalAmount.toFloat() // attitude - отношение
+                } ?: run {
+                    categories[category.category] = PieItemView(
+                        category = category.category,
+                        attitude = category.amount.toFloat() / totalAmount.toFloat(), // attitude - отношение
+                        amount = category.amount.toLong()
+                    )
+                }
             }
         }
+    }
+
+    fun setData(items: List<PieSector>) {
+        if (items.isEmpty()) return
+        slices.clear()
+        sectors?.clear()
+        sectors?.apply {
+            addAll(items)
+        } ?: run {
+            sectors = items.toMutableList()
+        }
+        setCategories()
         setSlices()
         invalidate()
     }
@@ -365,7 +376,7 @@ class PieChart @JvmOverloads constructor(
     }
 
     override fun onSaveInstanceState(): Parcelable {
-        //Log.d("ViewLifeCycle", "onSaveInstanceState")
+        Log.d("ViewLifeCycle", "onSaveInstanceState")
         val superState = super.onSaveInstanceState()
         val savedState = SavedState(superState)
         savedState.pieChartData = sectors
@@ -377,7 +388,12 @@ class PieChart @JvmOverloads constructor(
         if (state is SavedState) {
             super.onRestoreInstanceState(state.superState)
             //sectors = state.pieChartData?.toMutableList() ?: emptyList()
-            setData(state.pieChartData?.toMutableList() ?: emptyList())
+            sectors = state.pieChartData?.toMutableList() ?: emptyList()
+            slices.clear()
+            setCategories()
+            setSlices()
+            //categories.clear()
+            //setData(items)
         } else super.onRestoreInstanceState(state)
     }
 
