@@ -191,7 +191,7 @@ class PieChart @JvmOverloads constructor(
         centerX = measuredWidth / 2f
         centerY = measuredHeight / 2f
         setSlices()
-        //if (slices.isEmpty()) setSlices()
+
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -199,9 +199,7 @@ class PieChart @JvmOverloads constructor(
         if (slices.isEmpty()) return
         //super.onDraw(canvas)
         slices.forEach { (_, slice) ->
-            /*val middleAngle = slice.startAngle + slice.sweepAngle / 2
-            val x = centerX + commonRadius * cos(Math.toRadians(middleAngle.toDouble()))
-            val y = centerY + commonRadius * sin(Math.toRadians(middleAngle.toDouble()))*/
+
             paintArc.strokeWidth = slice.strokeWidth
             paintArc.color = slice.color
             paintText.textAlign = Paint.Align.CENTER
