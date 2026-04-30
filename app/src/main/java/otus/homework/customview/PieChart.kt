@@ -182,31 +182,28 @@ class PieChart @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        Log.d("ViewLifeCycle", "onMeasure")
         //if (categories.isEmpty()) return
         val curWidth = MeasureSpec.getSize(widthMeasureSpec)
         val curHeight = MeasureSpec.getSize(heightMeasureSpec)
 
         val contentWidth = when (val wMode = MeasureSpec.getMode(widthMeasureSpec)) {
-            MeasureSpec.AT_MOST -> curWidth
-            MeasureSpec.EXACTLY -> curWidth
+            MeasureSpec.AT_MOST -> min(curWidth, minViewSize)
+            MeasureSpec.EXACTLY -> min(curWidth, minViewSize)
             MeasureSpec.UNSPECIFIED -> minViewSize
             else -> error("Неизвестный режим ширины ($wMode)")
         }
 
         val contentHeight = when (val hMode = MeasureSpec.getMode(heightMeasureSpec)) {
-            MeasureSpec.AT_MOST -> curHeight
-            MeasureSpec.EXACTLY -> curHeight
+            MeasureSpec.AT_MOST -> min(curHeight, minViewSize)
+            MeasureSpec.EXACTLY -> min(curHeight, minViewSize)
             MeasureSpec.UNSPECIFIED -> minViewSize
             else -> error("Неизвестный режим ширины ($hMode)")
         }
 
         val size = min(contentWidth, contentHeight)
-        Log.d("ViewLifeCycle", "onMeasure: size = $size")
         setMeasuredDimension(size, size)
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        Log.d("ViewLifeCycle", "onSizeChanged")
         if (categories.isEmpty()) return
         super.onSizeChanged(w, h, oldw, oldh)
         centerX = measuredWidth / 2f
@@ -215,7 +212,6 @@ class PieChart @JvmOverloads constructor(
 
     }
     override fun onDraw(canvas: Canvas) {
-        Log.d("ViewLifeCycle", "onDraw")
         if (slices.isEmpty()) return
         //super.onDraw(canvas)
         slices.forEach { (_, slice) ->
@@ -290,7 +286,6 @@ class PieChart @JvmOverloads constructor(
     }
 
     override fun onSaveInstanceState(): Parcelable {
-        Log.d("ViewLifeCycle", "onSaveInstanceState")
         val superState = super.onSaveInstanceState()
         val savedState = SavedState(superState)
         savedState.pieChartData = sectors
@@ -298,7 +293,6 @@ class PieChart @JvmOverloads constructor(
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
-        Log.d("ViewLifeCycle", "onRestoreInstanceState")
         if (state is SavedState) {
             super.onRestoreInstanceState(state.superState)
             sectors = state.pieChartData?.toMutableList() ?: emptyList()
