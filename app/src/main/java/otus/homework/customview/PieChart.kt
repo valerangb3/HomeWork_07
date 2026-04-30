@@ -201,13 +201,13 @@ class PieChart @JvmOverloads constructor(
         }
 
         val size = min(contentWidth, contentHeight)
+        centerX = size / 2f
+        centerY = size / 2f
         setMeasuredDimension(size, size)
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         if (categories.isEmpty()) return
         super.onSizeChanged(w, h, oldw, oldh)
-        centerX = measuredWidth / 2f
-        centerY = measuredHeight / 2f
         setSlices()
 
     }
