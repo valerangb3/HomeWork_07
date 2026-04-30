@@ -2,7 +2,7 @@ package otus.homework.customview
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,12 +58,11 @@ class MainActivity : AppCompatActivity() {
                 pieChart.setData(pieSectors)
             }
         }
-        //JSONArray("")
 
-        findViewById<Button>(R.id.top_button).setOnClickListener {
-            //pieChart.setData(pieSectors)
-            //val intent = Intent(this, SecondActivity::class.java)
-            //startActivity(intent)
+        val appContext = this.applicationContext
+
+        pieChart.setOnSliceClickListener { slice ->
+            Toast.makeText(appContext, "Категория: ${slice.category}", Toast.LENGTH_SHORT).show()
         }
     }
 }

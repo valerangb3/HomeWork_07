@@ -9,9 +9,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CustomView">
         <activity
-            android:name=".SecondActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

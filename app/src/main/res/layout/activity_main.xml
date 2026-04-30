@@ -7,47 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Main Activity"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Контейнер с двумя кнопками -->
-    <!--<otus.homework.customview.CircularProgressView
-        android:id="@+id/customProgressView"
-        android:layout_width="wrap_content"
-        android:layout_height="200dp"
-        android:layout_margin="32dp"
-        android:background="@color/black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />-->
-
     <otus.homework.customview.PieChart
         android:id="@+id/pieChart"
         android:layout_width="wrap_content"
         android:layout_height="280dp"
         android:layout_margin="32dp"
+        app:strokeWidth="20dp"
+        app:gap="0.5dp"
+        app:normalize="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <otus.homework.customview.ButtonsContainer
-        android:id="@+id/buttonsContainer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:bottomButtonText="Bottom button - Main Activity"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:topButtonText="Top button - Main Activity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

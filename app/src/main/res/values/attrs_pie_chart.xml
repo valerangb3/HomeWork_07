@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="PieChart">
-
+        <attr name="strokeWidth" format="dimension" />
+        <attr name="inset" format="dimension" />
+        <attr name="gap" format="dimension"/>
+        <attr name="normalize" format="dimension"/>
     </declare-styleable>
 </resources>

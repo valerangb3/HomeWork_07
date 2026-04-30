@@ -41,9 +41,3 @@ data class PieSector(
         }
     }
 }
-
-internal data class PieItemView(
-    val category: String,
-    var attitude: Float,
-    var amount: Long,
-)
