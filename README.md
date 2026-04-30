@@ -12,5 +12,4 @@
 ![Pie Chart](art/first.png)
 
 ### Результат работы:
-- сделайте Pull-Request
-- приложите скриншоты к Pull-Request'у
+![Pie Chart Impl](art/impl.png)
